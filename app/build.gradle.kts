@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.File
 import java.util.Properties
 
-val appVersionName = "1.1.0"
+val appVersionName = "1.0.0"
 val appVersionCode = run {
     val semver = Regex("^(\\d+)\\.(\\d+)\\.(\\d+)$")
         .matchEntire(appVersionName)
@@ -11,13 +11,13 @@ val appVersionCode = run {
     val (major, minor, patch) = semver.destructured
     major.toInt() * 10_000 + minor.toInt() * 100 + patch.toInt()
 }
-val distributionArtifactName = "hermes-webui-v$appVersionName"
+val distributionArtifactName = "mrhermes-v$appVersionName"
 val githubReleaseArtifactName = "$distributionArtifactName-github"
 
 // Repository (owner/name) whose GitHub Releases the "github" build type checks.
 // Defaults to upstream so local/upstream builds are unchanged; release workflows
 // override it with the repository running the workflow so fork builds check fork releases.
-val defaultGithubReleaseRepo = "hermes-webui/hermes-android"
+val defaultGithubReleaseRepo = "m4tinbeigi-official/mrhermes-android"
 val githubReleaseRepo: String = run {
     val candidate = providers.gradleProperty("githubReleaseRepo").orNull
         ?: providers.environmentVariable("GITHUB_RELEASES_REPO").orNull
