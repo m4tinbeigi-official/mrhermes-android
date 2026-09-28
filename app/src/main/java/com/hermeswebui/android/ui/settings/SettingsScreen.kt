@@ -167,10 +167,18 @@ fun SettingsScreen(
     var clientCertificatePassword by remember(clientCertificatePassword) { mutableStateOf(clientCertificatePassword ?: "") }
     var clientCertificatePickerError by remember { mutableStateOf<String?>(null) }
     var serverUrl by remember(initialServerUrl, isConfigured) {
-        mutableStateOf(if (isConfigured) initialServerUrl else "")
+        mutableStateOf(if (isConfigured) initialServerUrl else (initialServerUrl.takeIf { it.isNotBlank() } ?: ""))
     }
     val coroutineScope = rememberCoroutineScope()
-    var usernameOrSubdomain by remember { mutableStateOf("") }
+    var usernameOrSubdomain by remember(initialServerUrl) {
+        mutableStateOf(
+            if (initialServerUrl.isNotBlank() && !initialServerUrl.contains("mrhermes.ir")) {
+                initialServerUrl
+            } else if (initialServerUrl.contains("mrhermes.ir")) {
+                initialServerUrl.substringAfter("://").substringBefore(".mrhermes.ir")
+            } else ""
+        )
+    }
     var userPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var isAuthenticating by remember { mutableStateOf(false) }
@@ -432,11 +440,12 @@ fun SettingsScreen(
 
                         Button(
                             onClick = {
-                                if (computedUrl.isBlank()) return@Button
+                                val urlToUse = computedUrl.ifBlank { serverUrl }
+                                if (urlToUse.isBlank()) return@Button
                                 isAuthenticating = true
                                 authErrorMessage = null
                                 coroutineScope.launch {
-                                    val targetUrl = computedUrl
+                                    val targetUrl = urlToUse
                                     if (userPassword.isNotBlank()) {
                                         when (val res = HermesApiClient.authenticate(targetUrl, userPassword)) {
                                             is HermesApiClient.AuthResult.Success -> {
@@ -458,7 +467,7 @@ fun SettingsScreen(
                                     }
                                 }
                             },
-                            enabled = usernameOrSubdomain.isNotBlank() && !isAuthenticating && !serverValidation.isChecking,
+                            enabled = (usernameOrSubdomain.isNotBlank() || serverUrl.isNotBlank()) && !isAuthenticating && !serverValidation.isChecking,
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = primaryColor,
@@ -477,6 +486,8 @@ fun SettingsScreen(
                                     )
                                     Text("در حال ورود به مستر هرمس...", fontWeight = FontWeight.SemiBold)
                                 }
+                            } else if (serverValidation.isChecking) {
+                                Text("Checking server...", fontWeight = FontWeight.SemiBold)
                             } else {
                                 Text("ورود به مستر هرمس", fontWeight = FontWeight.SemiBold)
                             }
@@ -515,7 +526,7 @@ fun SettingsScreen(
                             )
                         ) {
                             Text(
-                                if (serverValidation.isChecking) "در حال بررسی سرور..." else "اتصال",
+                                if (serverValidation.isChecking) "Checking server..." else "Connect",
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
