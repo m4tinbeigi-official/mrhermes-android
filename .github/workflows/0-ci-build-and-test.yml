@@ -8,6 +8,7 @@ name: 0 - CI Build & Test
 # to compile. Release tooling tests still run because they assert the README
 # release metadata matches Gradle.
 on:
+  workflow_dispatch:
   push:
     branches: ["main"]
   pull_request:
