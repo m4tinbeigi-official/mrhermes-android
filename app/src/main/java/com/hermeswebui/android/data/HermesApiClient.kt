@@ -718,4 +718,47 @@ object HermesApiClient {
 
         return inspect(root) == true
     }
+
+    sealed class AuthResult {
+        object Success : AuthResult()
+        data class InvalidCredentials(val message: String) : AuthResult()
+        data class Error(val message: String) : AuthResult()
+    }
+
+    suspend fun authenticate(serverUrl: String, password: String): AuthResult = withContext(Dispatchers.IO) {
+        val trimmedUrl = serverUrl.trim().trimEnd('/')
+        if (password.isBlank()) return@withContext AuthResult.Success
+        try {
+            val loginUrl = URI("$trimmedUrl/api/auth/login").toURL()
+            val conn = loginUrl.openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.connectTimeout = TIMEOUT_MS
+            conn.readTimeout = TIMEOUT_MS
+            conn.doOutput = true
+            conn.instanceFollowRedirects = false
+            conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8")
+            val payload = JSONObject().put("password", password).toString().toByteArray(Charsets.UTF_8)
+            conn.outputStream.use { it.write(payload) }
+
+            val code = conn.responseCode
+            if (code in 200..299) {
+                val setCookieHeaders = conn.headerFields["Set-Cookie"] ?: emptyList()
+                withContext(Dispatchers.Main) {
+                    val cookieManager = CookieManager.getInstance()
+                    cookieManager.setAcceptCookie(true)
+                    for (cookie in setCookieHeaders) {
+                        cookieManager.setCookie(trimmedUrl, cookie)
+                    }
+                    cookieManager.flush()
+                }
+                AuthResult.Success
+            } else if (code == 401 || code == 403) {
+                AuthResult.InvalidCredentials("رمز عبور وارد شده نادرست است.")
+            } else {
+                AuthResult.Error("خطا در ورود به سیستم: کد پاسخ $code")
+            }
+        } catch (e: Exception) {
+            AuthResult.Error(e.localizedMessage ?: "امکان اتصال به سرور وجود ندارد.")
+        }
+    }
 }

@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -62,6 +64,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -70,6 +73,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -78,8 +82,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.hermeswebui.android.R
+import com.hermeswebui.android.data.HermesApiClient
 import com.hermeswebui.android.data.ServerProfile
 import com.hermeswebui.android.ui.ServerValidationUiState
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 private const val DefaultTailscalePackage = "com.tailscale.ipn"
@@ -163,6 +169,13 @@ fun SettingsScreen(
     var serverUrl by remember(initialServerUrl, isConfigured) {
         mutableStateOf(if (isConfigured) initialServerUrl else "")
     }
+    val coroutineScope = rememberCoroutineScope()
+    var usernameOrSubdomain by remember { mutableStateOf("") }
+    var userPassword by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var isAuthenticating by remember { mutableStateOf(false) }
+    var authErrorMessage by remember { mutableStateOf<String?>(null) }
+    var useManualUrl by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val clientCertificatePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -324,48 +337,195 @@ fun SettingsScreen(
                 .padding(paddingValues)
         ) {
             if (!isConfigured) {
-                // ── First-run: connect ────────────────────────────────────
+                // ── First-run: Mr Hermes Connect ───────────────────────────
                 Column(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.mrhermes_logo),
+                        contentDescription = "Mr Hermes Logo",
+                        modifier = Modifier
+                            .size(92.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                    )
                     Text(
-                        text = "Connect to Hermes",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
+                        text = "مستر هرمس",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
                         color = primaryColor
                     )
                     Text(
-                        text = "Enter your Hermes server URL to get started.",
+                        text = "دستیار شما به معنای واقعی کلمه",
                         style = MaterialTheme.typography.bodyMedium,
                         color = onSurfaceVar
                     )
-                    OutlinedTextField(
-                        modifier = Modifier.fillMaxWidth(),
-                        value = serverUrl,
-                        onValueChange = {
-                            serverUrl = it
-                            onClearServerValidation()
-                        },
-                        singleLine = true,
-                        label = { Text("Hermes server URL") },
-                        placeholder = { Text("https://hermes.example.com") },
-                        supportingText = { Text("HTTP or HTTPS. Host is automatically allowlisted.") }
-                    )
-                    ServerValidationStatus(serverValidation = serverValidation)
-                    Button(
-                        onClick = { onSave(serverUrl.trim()) },
-                        enabled = serverUrl.isNotBlank() && !serverValidation.isChecking,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = primaryColor,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    if (!useManualUrl) {
+                        val cleanId = usernameOrSubdomain.trim().lowercase()
+                        val computedHost = when {
+                            cleanId.isEmpty() -> "your-id.mrhermes.ir"
+                            cleanId.contains("://") -> cleanId.substringAfter("://")
+                            cleanId.contains(".") -> cleanId
+                            else -> "$cleanId.mrhermes.ir"
+                        }
+                        val computedUrl = when {
+                            cleanId.isEmpty() -> ""
+                            cleanId.startsWith("http://") || cleanId.startsWith("https://") -> cleanId
+                            else -> "https://$computedHost"
+                        }
+
+                        OutlinedTextField(
+                            modifier = Modifier.fillMaxWidth(),
+                            value = usernameOrSubdomain,
+                            onValueChange = {
+                                usernameOrSubdomain = it
+                                authErrorMessage = null
+                                onClearServerValidation()
+                            },
+                            singleLine = true,
+                            label = { Text("نام کاربری یا ساب‌دامین") },
+                            placeholder = { Text("مثلاً amir یا ardalan") },
+                            supportingText = {
+                                Text(
+                                    if (cleanId.isNotBlank()) "آدرس سرور: https://$computedHost"
+                                    else "شناسه ساب‌دامین اختصاصی خود را وارد نمایید."
+                                )
+                            }
                         )
-                    ) {
-                        Text(
-                            if (serverValidation.isChecking) "Checking server..." else "Connect",
-                            fontWeight = FontWeight.SemiBold
+
+                        OutlinedTextField(
+                            modifier = Modifier.fillMaxWidth(),
+                            value = userPassword,
+                            onValueChange = {
+                                userPassword = it
+                                authErrorMessage = null
+                            },
+                            singleLine = true,
+                            label = { Text("رمز عبور") },
+                            placeholder = { Text("رمز عبور پنل کاربری") },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(
+                                        imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                        contentDescription = if (passwordVisible) "مخفی‌سازی رمز" else "نمایش رمز"
+                                    )
+                                }
+                            }
                         )
+
+                        if (authErrorMessage != null) {
+                            Text(
+                                text = authErrorMessage ?: "",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
+                        ServerValidationStatus(serverValidation = serverValidation)
+
+                        Button(
+                            onClick = {
+                                if (computedUrl.isBlank()) return@Button
+                                isAuthenticating = true
+                                authErrorMessage = null
+                                coroutineScope.launch {
+                                    val targetUrl = computedUrl
+                                    if (userPassword.isNotBlank()) {
+                                        when (val res = HermesApiClient.authenticate(targetUrl, userPassword)) {
+                                            is HermesApiClient.AuthResult.Success -> {
+                                                isAuthenticating = false
+                                                onSave(targetUrl)
+                                            }
+                                            is HermesApiClient.AuthResult.InvalidCredentials -> {
+                                                isAuthenticating = false
+                                                authErrorMessage = res.message
+                                            }
+                                            is HermesApiClient.AuthResult.Error -> {
+                                                isAuthenticating = false
+                                                authErrorMessage = res.message
+                                            }
+                                        }
+                                    } else {
+                                        isAuthenticating = false
+                                        onSave(targetUrl)
+                                    }
+                                }
+                            },
+                            enabled = usernameOrSubdomain.isNotBlank() && !isAuthenticating && !serverValidation.isChecking,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = primaryColor,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        ) {
+                            if (isAuthenticating) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                    Text("در حال ورود به مستر هرمس...", fontWeight = FontWeight.SemiBold)
+                                }
+                            } else {
+                                Text("ورود به مستر هرمس", fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+
+                        TextButton(
+                            onClick = { useManualUrl = true },
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        ) {
+                            Text("اتصال دستی با آدرس URL دلخواه", style = MaterialTheme.typography.labelMedium)
+                        }
+                    } else {
+                        // Manual custom server URL
+                        OutlinedTextField(
+                            modifier = Modifier.fillMaxWidth(),
+                            value = serverUrl,
+                            onValueChange = {
+                                serverUrl = it
+                                onClearServerValidation()
+                            },
+                            singleLine = true,
+                            label = { Text("آدرس سرور هرمس (URL)") },
+                            placeholder = { Text("https://app.mrhermes.ir") },
+                            supportingText = { Text("پروتکل HTTP یا HTTPS. آدرس کامل هاست.") }
+                        )
+
+                        ServerValidationStatus(serverValidation = serverValidation)
+
+                        Button(
+                            onClick = { onSave(serverUrl.trim()) },
+                            enabled = serverUrl.isNotBlank() && !serverValidation.isChecking,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = primaryColor,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        ) {
+                            Text(
+                                if (serverValidation.isChecking) "در حال بررسی سرور..." else "اتصال",
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        TextButton(
+                            onClick = { useManualUrl = false },
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        ) {
+                            Text("بازگشت به ورود با نام کاربری و رمز", style = MaterialTheme.typography.labelMedium)
+                        }
                     }
                 }
             } else {

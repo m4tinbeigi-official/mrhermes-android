@@ -1,7 +1,15 @@
 <resources>
-    <string name="app_name">Hermes WebUI</string>
-    <string name="default_server_url">https://hermes.example.com</string>
+    <string name="app_name">مستر هرمس</string>
+    <string name="default_server_url">https://app.mrhermes.ir</string>
     <string name="default_dashboard_url"></string>
+    <string name="mrhermes_title">مستر هرمس</string>
+    <string name="mrhermes_tagline">دستیار شما به معنای واقعی کلمه</string>
+    <string name="mrhermes_login_button">ورود به مستر هرمس</string>
+    <string name="mrhermes_username_label">نام کاربری (ساب‌دامین)</string>
+    <string name="mrhermes_username_placeholder">شناسه کاربری (مثلاً amir یا ardalan)</string>
+    <string name="mrhermes_password_label">رمز عبور</string>
+    <string name="mrhermes_password_placeholder">رمز عبور پنل مستر هرمس</string>
+    <string name="mrhermes_custom_url_toggle">اتصال به آدرس سرور دلخواه</string>
     <string name="action_edit_server_url">Edit server URL</string>
     <string name="server_switch_do_not_ask_again">Don\'t ask again for this server</string>
     <string name="reconnect_notification_title">Hermes activity is running in the background</string>

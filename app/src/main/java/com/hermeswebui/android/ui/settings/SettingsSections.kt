@@ -243,7 +243,7 @@ internal fun AboutSettingsSection(appVersionLabel: String, appUpdateChannelLabel
             .fillMaxWidth()
     ) {
         ListItem(
-            headlineContent = { Text("Hermes WebUI", fontWeight = FontWeight.Medium) },
+            headlineContent = { Text("Mr Hermes (مستر هرمس)", fontWeight = FontWeight.Medium) },
             supportingContent = {
                 Text(
                     "$appVersionLabel - Updates via $appUpdateChannelLabel",
