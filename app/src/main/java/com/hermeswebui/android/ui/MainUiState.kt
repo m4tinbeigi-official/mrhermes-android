@@ -42,5 +42,6 @@ data class MainUiState(
     val appUpdateReleaseNotes: String? = null,
     val clientCertificateUri: String? = null,
     val clientCertificatePassword: String? = null,
-    val serverValidation: ServerValidationUiState = ServerValidationUiState()
+    val serverValidation: ServerValidationUiState = ServerValidationUiState(),
+    val appLanguage: String = "en"
 )

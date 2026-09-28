@@ -56,7 +56,8 @@ class MainViewModel(
         appUpdateAlertsEnabled = settingsRepositoryImpl?.isAppUpdateAlertsEnabled() ?: false,
         automaticAppUpdateChecksEnabled = settingsRepositoryImpl?.isAutomaticAppUpdateChecksEnabled() ?: false,
         clientCertificateUri = settingsRepositoryImpl?.getClientCertificateConfig()?.uri,
-        clientCertificatePassword = settingsRepositoryImpl?.getClientCertificateConfig()?.password
+        clientCertificatePassword = settingsRepositoryImpl?.getClientCertificateConfig()?.password,
+        appLanguage = settingsRepositoryImpl?.getAppLanguage() ?: "en"
     ))
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
@@ -360,6 +361,11 @@ class MainViewModel(
 
      fun openSettings() {
         _uiState.update { it.copy(isSettingsVisible = true) }
+    }
+
+    fun setAppLanguage(lang: String) {
+        settingsRepositoryImpl?.setAppLanguage(lang)
+        _uiState.update { it.copy(appLanguage = lang) }
     }
 
     fun openSettingsWithServerValidation(message: String, isError: Boolean = true, details: String? = null) {

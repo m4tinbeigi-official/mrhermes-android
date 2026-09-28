@@ -76,6 +76,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
@@ -83,7 +84,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.LayoutDirection
+import com.hermeswebui.android.ui.theme.AppTypography
+import java.util.Locale
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.content.FileProvider
@@ -618,8 +625,26 @@ class MainActivity : ComponentActivity() {
                 WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !isDark
             }
         }
-        MaterialTheme(colorScheme = colorScheme) {
-            Box(modifier = Modifier.fillMaxSize()) {
+        val currentLanguage = uiState.appLanguage
+        val locale = remember(currentLanguage) { Locale(currentLanguage) }
+        val platformConfiguration = LocalConfiguration.current
+        val customConfiguration = remember(locale, platformConfiguration) {
+            android.content.res.Configuration(platformConfiguration).apply {
+                setLocale(locale)
+                setLayoutDirection(locale)
+            }
+        }
+        val layoutDirection = if (currentLanguage == "fa") LayoutDirection.Rtl else LayoutDirection.Ltr
+
+        CompositionLocalProvider(
+            LocalConfiguration provides customConfiguration,
+            LocalLayoutDirection provides layoutDirection
+        ) {
+            MaterialTheme(
+                colorScheme = colorScheme,
+                typography = AppTypography
+            ) {
+                Box(modifier = Modifier.fillMaxSize()) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -783,7 +808,9 @@ class MainActivity : ComponentActivity() {
                     onEditProfile = { profileId, newName, newUrl -> serverProfileCoordinator.handleEditServerProfile(profileId, newName, newUrl) },
                     onSwitchProfile = { profileId -> serverProfileCoordinator.handleSwitchServerProfile(profileId) },
                     onReconnectCurrentServer = { refreshConfiguredHermes(closeSettings = true) },
-                    onClearServerValidation = { viewModel.clearServerValidationState() }
+                    onClearServerValidation = { viewModel.clearServerValidationState() },
+                    appLanguage = uiState.appLanguage,
+                    onSetAppLanguage = { viewModel.setAppLanguage(it) }
                 )
             } // end if (isSettingsVisible)
 
@@ -801,6 +828,7 @@ class MainActivity : ComponentActivity() {
             }
         } // end outer Box
     } // end MaterialTheme
+    } // end CompositionLocalProvider
     }
 
     // This listener only restores WebView focus and returns false so WebView retains

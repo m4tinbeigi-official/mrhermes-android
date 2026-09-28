@@ -1,0 +1,54 @@
+<resources>
+    <string name="app_name">مستر هرمس</string>
+    <string name="default_server_url">https://app.mrhermes.ir</string>
+    <string name="default_dashboard_url"></string>
+    <string name="mrhermes_title">مستر هرمس</string>
+    <string name="mrhermes_tagline">دستیار شما به معنای واقعی کلمه</string>
+    <string name="mrhermes_login_button">ورود به مستر هرمس</string>
+    <string name="mrhermes_username_label">نام کاربری (ساب‌دامین)</string>
+    <string name="mrhermes_username_placeholder">مثلاً amir یا ardalan</string>
+    <string name="mrhermes_password_label">رمز عبور</string>
+    <string name="mrhermes_password_placeholder">رمز عبور پنل مستر هرمس</string>
+    <string name="mrhermes_server_url_hint">آدرس سرور: %1$s</string>
+    <string name="mrhermes_subdomain_hint">شناسه ساب‌دامین اختصاصی خود را وارد نمایید.</string>
+    <string name="mrhermes_custom_url_toggle">اتصال دستی با آدرس URL دلخواه</string>
+    <string name="mrhermes_back_to_login">بازگشت به ورود با نام کاربری و رمز</string>
+    <string name="mrhermes_custom_url_label">آدرس سرور هرمس (URL)</string>
+    <string name="mrhermes_custom_url_placeholder">https://app.mrhermes.ir</string>
+    <string name="mrhermes_custom_url_support">پروتکل HTTP یا HTTPS. آدرس کامل هاست.</string>
+    <string name="mrhermes_logging_in">در حال ورود به مستر هرمس…</string>
+    <string name="mrhermes_connect">اتصال</string>
+    <string name="mrhermes_checking_server">Checking server...</string>
+    <string name="mrhermes_language_section">زبان برنامه</string>
+    <string name="mrhermes_language_en">English (انگلیسی)</string>
+    <string name="mrhermes_language_fa">فارسی</string>
+    <string name="action_edit_server_url">ویرایش آدرس سرور</string>
+    <string name="server_switch_do_not_ask_again">دیگر برای این سرور سؤال نشود</string>
+    <string name="reconnect_notification_title">فعالیت هرمس در پس‌زمینه در حال اجراست</string>
+    <string name="reconnect_notification_body_activity">پایش نشست فعلی هرمس برای دریافت به‌روزرسانی‌های امن.</string>
+    <string name="reconnect_notification_body_session_stream">به‌روزرسانی‌های زنده نشست در پس‌زمینه فعال است.</string>
+    <string name="reconnect_notification_body_session_stream_reconnecting">استفاده از به‌روزرسانی‌های زنده در حین اتصال مجدد هرمس.</string>
+    <string name="reconnect_notification_body_public_activity">هرمس در پس‌زمینه در حال کار است.</string>
+    <string name="reconnect_notification_body_public_reconnecting">هرمس در پس‌زمینه تلاش می‌کند دوباره متصل شود.</string>
+    <string name="approval_action_deny">رد کردن</string>
+    <string name="approval_notification_invalid">عملیات تأیید هرمس دیگر معتبر نیست.</string>
+    <string name="approval_notification_expired">این درخواست تأیید هرمس منقضی شده است.</string>
+    <string name="approval_notification_already_sent">پاسخ تأیید قبلاً ارسال شده است.</string>
+    <string name="approval_notification_sending">در حال ارسال پاسخ تأیید هرمس…</string>
+    <string name="approval_notification_failed">ارسال پاسخ تأیید به هرمس با شکست مواجه شد.</string>
+    <string name="approval_notification_sent">پاسخ تأیید ارسال شد: %1$s.</string>
+    <string name="approval_notification_invalid_choice">این گزینه تأیید دیگر در دسترس نیست.</string>
+    <plurals name="reconnect_notification_body_polling_interval">
+        <item quantity="one">ارسال پینگ هر %1$d ثانیه برای زنده نگه‌داشتن ارتباط.</item>
+        <item quantity="other">ارسال پینگ هر %1$d ثانیه برای زنده نگه‌داشتن ارتباط.</item>
+    </plurals>
+    <plurals name="reconnect_settings_polling_interval">
+        <item quantity="one">%1$d ثانیه فاصله بین بررسی‌های اتصال مجدد</item>
+        <item quantity="other">%1$d ثانیه فاصله بین بررسی‌های اتصال مجدد</item>
+    </plurals>
+    <string name="debug_logging_channel_name">لاگ عیب‌یابی هرمس</string>
+    <string name="debug_logging_channel_description">ثبت مداوم لاگ برای عیب‌یابی رفتار اندروید</string>
+    <string name="debug_logging_notification_title">ثبت لاگ عیب‌یابی در حال اجراست</string>
+    <string name="debug_logging_notification_body">ثبت گزارش‌ها در پس‌زمینه. برای توقف، دکمه توقف را لمس کنید.</string>
+    <string name="debug_logging_notification_stop_action">توقف</string>
+</resources>

@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -41,6 +42,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -123,6 +126,8 @@ fun SettingsScreen(
     serverValidation: ServerValidationUiState,
     appVersionLabel: String,
     serverProfiles: List<ServerProfile>,
+    appLanguage: String = "en",
+    onSetAppLanguage: (String) -> Unit = {},
     onSave: (String) -> Unit,
     onDismiss: () -> Unit,
     onSetBackgroundReconnect: (Boolean) -> Unit,
@@ -360,16 +365,38 @@ fun SettingsScreen(
                             .clip(RoundedCornerShape(20.dp))
                     )
                     Text(
-                        text = "مستر هرمس",
+                        text = stringResource(R.string.mrhermes_title),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = primaryColor
                     )
                     Text(
-                        text = "دستیار شما به معنای واقعی کلمه",
+                        text = stringResource(R.string.mrhermes_tagline),
                         style = MaterialTheme.typography.bodyMedium,
                         color = onSurfaceVar
                     )
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        FilterChip(
+                            selected = appLanguage == "en",
+                            onClick = { onSetAppLanguage("en") },
+                            label = { Text("English") },
+                            leadingIcon = if (appLanguage == "en") {
+                                { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null
+                        )
+                        FilterChip(
+                            selected = appLanguage == "fa",
+                            onClick = { onSetAppLanguage("fa") },
+                            label = { Text("فارسی") },
+                            leadingIcon = if (appLanguage == "fa") {
+                                { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(4.dp))
 
@@ -396,12 +423,12 @@ fun SettingsScreen(
                                 onClearServerValidation()
                             },
                             singleLine = true,
-                            label = { Text("نام کاربری یا ساب‌دامین") },
-                            placeholder = { Text("مثلاً amir یا ardalan") },
+                            label = { Text(stringResource(R.string.mrhermes_username_label)) },
+                            placeholder = { Text(stringResource(R.string.mrhermes_username_placeholder)) },
                             supportingText = {
                                 Text(
-                                    if (cleanId.isNotBlank()) "آدرس سرور: https://$computedHost"
-                                    else "شناسه ساب‌دامین اختصاصی خود را وارد نمایید."
+                                    if (cleanId.isNotBlank()) stringResource(R.string.mrhermes_server_url_hint, "https://$computedHost")
+                                    else stringResource(R.string.mrhermes_subdomain_hint)
                                 )
                             }
                         )
@@ -414,14 +441,14 @@ fun SettingsScreen(
                                 authErrorMessage = null
                             },
                             singleLine = true,
-                            label = { Text("رمز عبور") },
-                            placeholder = { Text("رمز عبور پنل کاربری") },
+                            label = { Text(stringResource(R.string.mrhermes_password_label)) },
+                            placeholder = { Text(stringResource(R.string.mrhermes_password_placeholder)) },
                             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                             trailingIcon = {
                                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                     Icon(
                                         imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                        contentDescription = if (passwordVisible) "مخفی‌سازی رمز" else "نمایش رمز"
+                                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
                                     )
                                 }
                             }
@@ -484,12 +511,12 @@ fun SettingsScreen(
                                         strokeWidth = 2.dp,
                                         color = MaterialTheme.colorScheme.onPrimary
                                     )
-                                    Text("در حال ورود به مستر هرمس...", fontWeight = FontWeight.SemiBold)
+                                    Text(stringResource(R.string.mrhermes_logging_in), fontWeight = FontWeight.SemiBold)
                                 }
                             } else if (serverValidation.isChecking) {
                                 Text("Checking server...", fontWeight = FontWeight.SemiBold)
                             } else {
-                                Text("ورود به مستر هرمس", fontWeight = FontWeight.SemiBold)
+                                Text(stringResource(R.string.mrhermes_login_button), fontWeight = FontWeight.SemiBold)
                             }
                         }
 
@@ -497,7 +524,7 @@ fun SettingsScreen(
                             onClick = { useManualUrl = true },
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         ) {
-                            Text("اتصال دستی با آدرس URL دلخواه", style = MaterialTheme.typography.labelMedium)
+                            Text(stringResource(R.string.mrhermes_custom_url_toggle), style = MaterialTheme.typography.labelMedium)
                         }
                     } else {
                         // Manual custom server URL
@@ -509,9 +536,9 @@ fun SettingsScreen(
                                 onClearServerValidation()
                             },
                             singleLine = true,
-                            label = { Text("آدرس سرور هرمس (URL)") },
-                            placeholder = { Text("https://app.mrhermes.ir") },
-                            supportingText = { Text("پروتکل HTTP یا HTTPS. آدرس کامل هاست.") }
+                            label = { Text(stringResource(R.string.mrhermes_custom_url_label)) },
+                            placeholder = { Text(stringResource(R.string.mrhermes_custom_url_placeholder)) },
+                            supportingText = { Text(stringResource(R.string.mrhermes_custom_url_support)) }
                         )
 
                         ServerValidationStatus(serverValidation = serverValidation)
@@ -526,7 +553,7 @@ fun SettingsScreen(
                             )
                         ) {
                             Text(
-                                if (serverValidation.isChecking) "Checking server..." else "Connect",
+                                if (serverValidation.isChecking) "Checking server..." else stringResource(R.string.mrhermes_connect),
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
@@ -535,11 +562,49 @@ fun SettingsScreen(
                             onClick = { useManualUrl = false },
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         ) {
-                            Text("بازگشت به ورود با نام کاربری و رمز", style = MaterialTheme.typography.labelMedium)
+                            Text(stringResource(R.string.mrhermes_back_to_login), style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }
             } else {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // ── Language ──────────────────────────────────────────────
+                SectionHeader(stringResource(R.string.mrhermes_language_section))
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(surfaceColor)
+                        .fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        FilterChip(
+                            selected = appLanguage == "en",
+                            onClick = { onSetAppLanguage("en") },
+                            label = { Text(stringResource(R.string.mrhermes_language_en)) },
+                            leadingIcon = if (appLanguage == "en") {
+                                { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null,
+                            modifier = Modifier.weight(1f)
+                        )
+                        FilterChip(
+                            selected = appLanguage == "fa",
+                            onClick = { onSetAppLanguage("fa") },
+                            label = { Text(stringResource(R.string.mrhermes_language_fa)) },
+                            leadingIcon = if (appLanguage == "fa") {
+                                { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                            } else null,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // ── Servers ───────────────────────────────────────────────

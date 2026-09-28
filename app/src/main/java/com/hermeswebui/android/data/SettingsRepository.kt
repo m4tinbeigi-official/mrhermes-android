@@ -48,6 +48,16 @@ class SettingsRepository(context: Context) : SettingsStore {
         }
     }
 
+    fun getAppLanguage(): String {
+        return sharedPreferences.getString(KEY_APP_LANGUAGE, "en") ?: "en"
+    }
+
+    fun setAppLanguage(languageCode: String) {
+        sharedPreferences.edit {
+            putString(KEY_APP_LANGUAGE, languageCode)
+        }
+    }
+
     init {
         // Migrate away from storing dashboard URLs in Android preferences.
         // Versions before 0.1.5 stored a dashboard URL in SharedPreferences and injected it
@@ -492,6 +502,7 @@ class SettingsRepository(context: Context) : SettingsStore {
         private const val KEY_AUTH_PROMPT_SILENCED_URLS = "auth_prompt_silenced_urls"
         private const val KEY_CLIENT_CERT_URI = "client_cert_uri"
         private const val KEY_CLIENT_CERT_PASSWORD = "client_cert_password"
+        private const val KEY_APP_LANGUAGE = "app_language"
         private const val KEY_LAST_MIGRATION_VERSION = "last_migration_version"
         private const val DEFAULT_VPN_LAUNCH_PACKAGE = "com.tailscale.ipn"
         private const val DEFAULT_RECONNECT_POLL_INTERVAL_SECONDS = 1
